@@ -43,6 +43,7 @@ def get_bigquery_client():
             
             credentials = service_account.Credentials.from_service_account_file(key_file)
     
+            print(key_json)
             print("Identifiants GCP configurés.")
             return bigquery.Client(project=GCP_PROJECT_ID, credentials=credentials)  
         else:
