@@ -91,7 +91,6 @@ def get_monthly_budget():
         }
     return st.session_state.budgets
 
-
 def main():
     st.title("💰 Expense Tracker Dashboard")
     st.markdown("---")
