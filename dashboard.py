@@ -30,10 +30,28 @@ BANKS = ['BNP', 'Boursorama', 'Hello Bank', 'Wise', 'Revolut']
 @st.cache_resource
 def get_bigquery_client():
     try:
-        credentials = service_account.Credentials.from_service_account_file(
-            'gcp-credentials.json'
-        )
-        return bigquery.Client(credentials=credentials, project=GCP_PROJECT_ID)
+        if os.getenv("ENVIRONMENT") == "PROD":
+            print("Environnement PROD détecté, configuration des identifiants GCP.")
+            # récupérer la clé stockée dans les secrets
+            key_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+
+            print(key_json)
+            # écrire dans un fichier temporaire
+            with open("/tmp/sa_key.json", "w") as f:
+                f.write(key_json)
+
+            print("Clé de service écrite dans /tmp/sa_key.json")
+            # définir la variable d'environnement pour BigQuery
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/tmp/sa_key.json"
+        
+            print("Identifiants GCP configurés.")
+        else:
+            print("Environnement DEV détecté, ")
+            # utiliser les identifiants par défaut
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "gcp-credentials.json"
+        
+            print("Identifiants GCP locaux configurés.")
+        return bigquery.Client(project=GCP_PROJECT_ID)
     except:
         return bigquery.Client(project=GCP_PROJECT_ID)
 
