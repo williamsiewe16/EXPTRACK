@@ -51,8 +51,8 @@ def get_bigquery_client():
             
             with open(key_file, "r") as f:
                 key_data = json.load(f)
-                logger.info(f"Clé GCP chargée pour le projet: {key_data.get('project_id')}")
-                
+                logger.info(f"Clé GCP chargée pour le projet: {key_data}")
+
             credentials = service_account.Credentials.from_service_account_file(key_file)
     
             logger.info(key_json)
