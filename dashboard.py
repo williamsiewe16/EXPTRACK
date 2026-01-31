@@ -35,7 +35,13 @@ def get_bigquery_client():
             print("Environnement PROD détecté, configuration des identifiants GCP.")
             # récupérer la clé stockée dans les secrets
             key_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
-            credentials = json.loads(key_json)
+
+            # créer un fichier temporaire pour le SDK
+            key_file = "/tmp/sa_key.json"
+            with open(key_file, "w") as f:
+                f.write(key_json)
+            
+            credentials = service_account.Credentials.from_service_account_file(key_file)
     
             print("Identifiants GCP configurés.")
             return bigquery.Client(project=GCP_PROJECT_ID, credentials=credentials)  
