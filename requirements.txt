@@ -1,0 +1,9 @@
+python-telegram-bot==21.0.1
+openai==1.57.4
+google-cloud-bigquery==3.27.0
+google-auth==2.36.0
+streamlit==1.41.1
+pandas==2.2.3
+plotly==5.24.1
+dotenv
+db-dtypes
