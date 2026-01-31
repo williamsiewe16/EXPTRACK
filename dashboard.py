@@ -9,6 +9,14 @@ import calendar
 import dotenv
 import os
 import json
+import logging
+
+# Configuration
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 dotenv.load_dotenv()
@@ -32,7 +40,7 @@ BANKS = ['BNP', 'Boursorama', 'Hello Bank', 'Wise', 'Revolut']
 def get_bigquery_client():
     try:
         if os.getenv("ENVIRONMENT") == "PROD":
-            print("Environnement PROD détecté, configuration des identifiants GCP.")
+            logger.info("Environnement PROD détecté, configuration des identifiants GCP.")
             # récupérer la clé stockée dans les secrets
             key_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
 
@@ -43,17 +51,17 @@ def get_bigquery_client():
             
             credentials = service_account.Credentials.from_service_account_file(key_file)
     
-            print(key_json)
-            print("Identifiants GCP configurés.")
+            logger.info(key_json)
+            logger.info("Identifiants GCP configurés.", credentials)
             return bigquery.Client(project=GCP_PROJECT_ID, credentials=credentials)  
         else:
-            print("Environnement DEV détecté, ")
+            logger.info("Environnement DEV détecté, ")
             credentials = service_account.Credentials.from_service_account_file(
                 'gcp-credentials.json'
             )
             return bigquery.Client(project=GCP_PROJECT_ID, credentials=credentials)  
-    except:
-        print("Erreur lors de la configuration des identifiants GCP.")
+    except Exception as e:
+        logger.error(f"Erreur lors de la configuration des identifiants GCP: {e}")
 
 bq_client = get_bigquery_client()
 
