@@ -51,7 +51,7 @@ def get_bigquery_client():
             os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "gcp-credentials.json"
         
             print("Identifiants GCP locaux configurés.")
-        return bigquery.Client(project=GCP_PROJECT_ID)
+        #return bigquery.Client(project=GCP_PROJECT_ID)
     except:
         return bigquery.Client(project=GCP_PROJECT_ID)
 
