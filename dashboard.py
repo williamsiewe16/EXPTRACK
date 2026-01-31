@@ -34,24 +34,16 @@ def get_bigquery_client():
             print("Environnement PROD détecté, configuration des identifiants GCP.")
             # récupérer la clé stockée dans les secrets
             key_json = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
-
-            print(key_json)
-            # écrire dans un fichier temporaire
-            with open("/tmp/sa_key.json", "w") as f:
-                f.write(key_json)
-
-            print("Clé de service écrite dans /tmp/sa_key.json")
-            # définir la variable d'environnement pour BigQuery
-            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/tmp/sa_key.json"
-        
+            credentials = json.loads(key_json)
+    
             print("Identifiants GCP configurés.")
+            return bigquery.Client(project=GCP_PROJECT_ID, credentials=credentials)  
         else:
             print("Environnement DEV détecté, ")
-            # utiliser les identifiants par défaut
-            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "gcp-credentials.json"
-        
-            print("Identifiants GCP locaux configurés.")
-        #return bigquery.Client(project=GCP_PROJECT_ID)
+            credentials = service_account.Credentials.from_service_account_file(
+                'gcp-credentials.json'
+            )
+            return bigquery.Client(project=GCP_PROJECT_ID, credentials=credentials)  
     except:
         return bigquery.Client(project=GCP_PROJECT_ID)
 
@@ -346,6 +338,6 @@ def main():
 
 
 if __name__ == "__main__":
-    print(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
-    print(os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON"))
-    #main()
+    #print(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+    #print(os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON"))
+    main()
