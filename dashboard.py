@@ -346,4 +346,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    print(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+    print(os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON"))
+    #main()
