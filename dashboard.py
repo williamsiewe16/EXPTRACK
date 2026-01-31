@@ -46,7 +46,7 @@ def get_bigquery_client():
             )
             return bigquery.Client(project=GCP_PROJECT_ID, credentials=credentials)  
     except:
-        return bigquery.Client(project=GCP_PROJECT_ID)
+        print("Erreur lors de la configuration des identifiants GCP.")
 
 bq_client = get_bigquery_client()
 
