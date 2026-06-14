@@ -39,14 +39,37 @@ BANKS = ['BNP', 'Boursorama', 'Hello Bank', 'Wise', 'Revolut', 'Ticket Restauran
 # Initialize clients
 openai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
-# BigQuery client (will use Application Default Credentials or service account)
-try:
-    credentials = service_account.Credentials.from_service_account_file(
-        'gcp-credentials.json'
-    )
-    bq_client = bigquery.Client(credentials=credentials, project=GCP_PROJECT_ID)
-except:
-    bq_client = bigquery.Client(project=GCP_PROJECT_ID)
+
+# BigQuery client - credentials loading strategy:
+# 1. GCP_CREDENTIALS_JSON env var (raw JSON content) -> for cloud deployment (Render, etc.)
+# 2. gcp-credentials.json file -> for local development
+# 3. Application Default Credentials -> fallback (GCP environments)
+def get_bigquery_client():
+    # Option 1: JSON content stored in an environment variable (cloud deployment)
+    creds_json = os.getenv('GCP_CREDENTIALS_JSON')
+    if creds_json:
+        try:
+            creds_info = json.loads(creds_json)
+            credentials = service_account.Credentials.from_service_account_info(creds_info)
+            logger.info("BigQuery: using credentials from GCP_CREDENTIALS_JSON env var")
+            return bigquery.Client(credentials=credentials, project=GCP_PROJECT_ID)
+        except Exception as e:
+            logger.error(f"Failed to load GCP_CREDENTIALS_JSON: {e}")
+
+    # Option 2: local JSON file
+    if os.path.exists('gcp-credentials.json'):
+        credentials = service_account.Credentials.from_service_account_file(
+            'gcp-credentials.json'
+        )
+        logger.info("BigQuery: using credentials from gcp-credentials.json file")
+        return bigquery.Client(credentials=credentials, project=GCP_PROJECT_ID)
+
+    # Option 3: Application Default Credentials
+    logger.info("BigQuery: using Application Default Credentials")
+    return bigquery.Client(project=GCP_PROJECT_ID)
+
+
+bq_client = get_bigquery_client()
 
 
 def init_bigquery():
