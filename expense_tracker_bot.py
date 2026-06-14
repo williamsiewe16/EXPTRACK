@@ -2,6 +2,8 @@ import os
 import json
 import logging
 import tempfile
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from datetime import datetime
 from dotenv import load_dotenv
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -55,6 +57,8 @@ def get_bigquery_client():
             return bigquery.Client(credentials=credentials, project=GCP_PROJECT_ID)
         except Exception as e:
             logger.error(f"Failed to load GCP_CREDENTIALS_JSON: {e}")
+    else:
+        logger.warning("GCP_CREDENTIALS_JSON env var is not set or empty")
 
     # Option 2: local JSON file
     if os.path.exists('gcp-credentials.json'):
@@ -445,8 +449,37 @@ async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"❌ Erreur: {str(e)}")
 
 
+def start_keep_alive_server():
+    """Start a minimal HTTP server in a background thread.
+
+    Render's Web Services require an open port. A Telegram bot in polling mode
+    doesn't open one, so this tiny server binds to the port Render provides
+    (via the PORT env var) just to satisfy the platform's health check.
+    """
+    port = int(os.getenv('PORT', '10000'))
+
+    class HealthCheckHandler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(b'Bot is running')
+
+        def log_message(self, format, *args):
+            # Silence default HTTP logging to keep bot logs clean
+            pass
+
+    server = HTTPServer(('0.0.0.0', port), HealthCheckHandler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    logger.info(f"Keep-alive HTTP server started on port {port}")
+
+
 def main():
     """Start the bot"""
+    # Start keep-alive server (for Render Web Service port binding)
+    start_keep_alive_server()
+
     # Initialize BigQuery
     init_bigquery()
     
